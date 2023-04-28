@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+
+
+<head>
+  <title>File Reader Example</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <h1>PDF Komprimieren</h1>
+  <h2>Auswählen</h2>
+  <input type="file" id="fileInput">
+  <h2>Hochladen</h2>
+  <button id="submitButton">Submit</button>
+  <h2>Ergebnis</h2>
+  <a href=".\out.pdf" download>Upload</a>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const submitButton = document.getElementById('submitButton');
+
+    submitButton.addEventListener('click', (event) => {
+      console.log("SUBMIT");
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(file);
+
+      console.log("CHECK FILETYPE");
+      if (file.type !== 'application/pdf') {
+        alert('Please select a PDF file.');
+        return;
+      }
+
+      console.log("ON LOAD");
+      reader.onload = () => {
+        const data = reader.result;
+
+        fetch('http://127.0.0.1:4455/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/pdf' // Set the content type explicitly
+          },
+          body: data
+        })
+          .then(response => response.text())
+          .then(data => console.log(data))
+          .catch(error => console.error(error));
+      };
+
+      reader.onerror = () => {
+        console.error('Error reading file');
+      };
+    });
+  </script>
+</body>
+
+</html>
