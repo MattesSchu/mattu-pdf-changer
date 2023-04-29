@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
 
-
-
 <head>
   <title>File Reader Example</title>
   <link rel="stylesheet" href="style.css">
@@ -36,7 +34,7 @@
       console.log("ON LOAD");
       reader.onload = () => {
         const data = reader.result;
-
+        const uploadUrl = 
         fetch('http://127.0.0.1:4455/upload', {
           method: 'POST',
           headers: {

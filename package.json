@@ -1,5 +1,25 @@
 {
+  "name": "mattu-pdf-changer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:ts": "tsc",
+    "build:cmd": "copyfiles -u 1 src/**/*.cmd dist",
+    "build": "run-s build:ts build:cmd",
+    "start": "node dist/index.js"
+  },
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
+    "@types/node": "^18.16.2",
+    "@types/uuid": "^9.0.1",
+    "copyfiles": "^2.4.1",
+    "prettier": "^2.8.8",
     "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
   }
 }
