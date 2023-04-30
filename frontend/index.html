@@ -1,57 +1,93 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>File Reader Example</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<head>
-  <title>File Reader Example</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+  <body>
+    <h1>PDF Komprimieren</h1>
+    <h2>Auswählen</h2>
+    <input type="file" id="fileInput" />
+    <h2>Hochladen</h2>
+    <button id="submitButton">Submit</button>
+    <h2>Ergebnis</h2>
+    <div id="statusText"></div>
+    <div id="resultDiv"></div>
 
-<body>
-  <h1>PDF Komprimieren</h1>
-  <h2>Auswählen</h2>
-  <input type="file" id="fileInput">
-  <h2>Hochladen</h2>
-  <button id="submitButton">Submit</button>
-  <h2>Ergebnis</h2>
-  <a href=".\out.pdf" download>Upload</a>
+    <script>
+      const fileInput = document.getElementById('fileInput');
+      const submitButton = document.getElementById('submitButton');
+      const statusText = document.getElementById('statusText');
+      const resultDiv = document.getElementById('resultDiv');
 
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const submitButton = document.getElementById('submitButton');
+      function uuidv4() {
+        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+          (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16),
+        );
+      }
 
-    submitButton.addEventListener('click', (event) => {
-      console.log("SUBMIT");
-      const file = fileInput.files[0];
-      const reader = new FileReader();
-      reader.readAsArrayBuffer(file);
-
-      console.log("CHECK FILETYPE");
-      if (file.type !== 'application/pdf') {
-        alert('Please select a PDF file.');
+      async function updateStatusText(msg) {
+        statusText.innerHTML = msg;
         return;
       }
 
-      console.log("ON LOAD");
-      reader.onload = () => {
-        const data = reader.result;
-        const uploadUrl = 
-        fetch('http://127.0.0.1:4455/upload', {
+      async function upload(formData) {
+        console.log('UPLOAD');
+        resultDiv.innerHTML = '';
+        updateStatusText('⛅ uploading file...');
+        fetch('http://192.168.178.32:4455/upload', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/pdf' // Set the content type explicitly
-          },
-          body: data
+          body: formData,
         })
-          .then(response => response.text())
-          .then(data => console.log(data))
-          .catch(error => console.error(error));
-      };
+          .then((res) => res.json())
+          .then((res) => {
+            console.log(res);
+            console.log(res.msg);
+            updateStatusText('🎉 Erfolg');
+            const linkEl = document.createElement('a');
+            const pdfName = 'c-' + res.compressedPdf.fileName;
+            linkEl.href = `http://192.168.178.32:4455/download?fileName=${encodeURIComponent(
+              pdfName,
+            )}&uuid=${encodeURIComponent(res.compressedPdf.uuid)}`;
+            linkEl.text = `${res.compressedPdf.uuid}/${pdfName}`;
+            resultDiv.appendChild(linkEl);
+            return;
+          })
+          .catch((error) => {
+            console.log(error);
+            updateStatusText('😥 Fehler: ', error);
+            return;
+          });
+      }
 
-      reader.onerror = () => {
-        console.error('Error reading file');
-      };
-    });
-  </script>
-</body>
+      submitButton.addEventListener('click', (event) => {
+        console.log('SUBMIT');
+        const file = fileInput.files[0];
+        const reader = new FileReader();
 
+        updateStatusText('📖 reading file');
+        reader.readAsArrayBuffer(file);
+        console.log('CHECK FILETYPE');
+        if (file.type !== 'application/pdf') {
+          alert('Please select a PDF file.');
+          return;
+        }
+
+        console.log('ON LOAD');
+        reader.onload = () => {
+          const formData = new FormData();
+          const uuid = uuidv4();
+          const pdfFile = reader.result;
+          formData.append('uuid', uuid);
+          formData.append('pdfFile', new Blob([pdfFile], { type: 'application/pdf' }), file.name);
+
+          upload(formData);
+        };
+        reader.onerror = () => {
+          console.log('Error reading file');
+        };
+      });
+    </script>
+  </body>
 </html>

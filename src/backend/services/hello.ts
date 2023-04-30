@@ -1,4 +1,4 @@
-import { ServerResponse } from "http";
+import { ServerResponse } from 'http';
 
 export function sayHello(res: ServerResponse) {
   res.writeHead(200, { 'Content-Type': 'application/json' });
